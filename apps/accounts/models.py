@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 
-from accounts.managers import CustomUserManager
+from .managers import CustomUserManager
 
 from apps.common.models import IsDeletedModel
 
