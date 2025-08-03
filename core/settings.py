@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'apps.accounts',
     'apps.profiles',
     'apps.sellers',
@@ -108,6 +109,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "DRF SHOP API",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
