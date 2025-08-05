@@ -124,6 +124,9 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "DRF SHOP API",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+    },
 }
 
 # Internationalization
