@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.utils import set_dict_attr
+from apps.common.permissions import IsOwner
 
 from apps.profiles.serializers import ProfileSerializer, ShippingAddressSerializer
 from apps.profiles.models import ShippingAddress, Order, OrderItem
@@ -11,6 +12,7 @@ from apps.shop.serializers import OrderSerializer, CheckItemOrderSerializer
 
 class ProfileView(APIView):
     serializer_class = ProfileSerializer
+    permission_classes = [IsOwner]
 
     def get(self, request):
         user = request.user
@@ -35,6 +37,7 @@ class ProfileView(APIView):
 
 class ShippingAddressesView(APIView):
     serializer_class = ShippingAddressSerializer
+    permission_classes = [IsOwner]
 
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -55,9 +58,12 @@ class ShippingAddressesView(APIView):
 
 class ShippingAddressViewID(APIView):
     serializer_class = ShippingAddressSerializer
+    permission_classes = [IsOwner]
 
     def get_object(self, user, shipping_id):
-        shipping_address = ShippingAddress.objects.get_or_none(user=user, id=shipping_id)
+        shipping_address = ShippingAddress.objects.get_or_none(id=shipping_id)
+        if shipping_address is not None:
+            self.check_object_permissions(self.request, shipping_address)
         return shipping_address
 
     def get(self, request, *args, **kwargs):
@@ -92,6 +98,7 @@ class ShippingAddressViewID(APIView):
 
 class OrdersView(APIView):
     serializer_class = OrderSerializer
+    permission_classes = [IsOwner]
 
     def get(self, request):
         user = request.user
@@ -104,6 +111,7 @@ class OrdersView(APIView):
 
 class OrderItemsView(APIView):
     serializer_class = CheckItemOrderSerializer
+    permission_classes = [IsOwner]
 
     def get(self, request, **kwargs):
         order = Order.objects.get_or_none(tx_ref=kwargs["tx_ref"])

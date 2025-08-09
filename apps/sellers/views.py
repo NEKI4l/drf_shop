@@ -10,6 +10,7 @@ from apps.shop.serializers import ProductSerializer, CreateProductSerializer, Or
 from apps.profiles.models import Order, OrderItem
 
 from apps.common.utils import set_dict_attr
+from apps.common.permissions import IsSeller
 
 tags = ["Sellers"]
 
@@ -33,6 +34,7 @@ class SellersView(APIView):
 
 class SellerProductsView(APIView):
     serializer_class = ProductSerializer
+    permission_classes = [IsSeller]
 
     def get(self, request, *args, **kwargs):
         seller = Seller.objects.get_or_none(user=request.user, is_approved=True)
@@ -64,6 +66,7 @@ class SellerProductsView(APIView):
 
 class SellerProductView(APIView):
     serializer_class = CreateProductSerializer
+    permission_classes = [IsSeller]
 
     def get_object(self, slug):
         product = Product.objects.get_or_none(slug=slug)
@@ -104,6 +107,7 @@ class SellerProductView(APIView):
 
 class SellerOrdersView(APIView):
     serializer_class = OrderSerializer
+    permission_classes = [IsSeller]
 
     def get(self, request):
         seller = request.user.seller
@@ -117,6 +121,7 @@ class SellerOrdersView(APIView):
 
 class SellerOrderItemsView(APIView):
     serializer_class = CheckItemOrderSerializer
+    permission_classes = [IsSeller]
 
     def get(self, request, **kwargs):
         seller = request.user.seller
