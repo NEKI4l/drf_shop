@@ -78,3 +78,9 @@ class OrderSerializer(serializers.Serializer):
     total = serializers.DecimalField(
         max_digits=100, decimal_places=2, source="get_cart_total"
     )
+
+
+class CheckItemOrderSerializer(serializers.Serializer):
+    product = ProductSerializer()
+    quantity = serializers.IntegerField()
+    total = serializers.FloatField(source="get_total")
