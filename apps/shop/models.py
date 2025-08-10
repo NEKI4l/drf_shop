@@ -3,6 +3,10 @@ from django.db import models
 
 from apps.common.models import BaseModel, IsDeletedModel
 from apps.sellers.models import Seller
+from apps.accounts.models import User
+
+
+RATING_CHOICES = ((1, 1), (2, 2), (3, 3), (4, 4), (5, 5))
 
 
 class Category(BaseModel):
@@ -34,3 +38,13 @@ class Product(IsDeletedModel):
 
     def __str__(self):
         return str(self.name)
+    
+
+class Review(IsDeletedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=RATING_CHOICES, default=5)
+    text = models.TextField()
+
+    class Meta:
+        unique_together = ('user', 'product')

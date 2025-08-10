@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import Review
 
 
 class CategorySerializer(serializers.Serializer):
@@ -84,3 +85,19 @@ class CheckItemOrderSerializer(serializers.Serializer):
     product = ProductSerializer()
     quantity = serializers.IntegerField()
     total = serializers.FloatField(source="get_total")
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['user', 'product', 'rating', 'text', 'created_at']
+        read_only_fields = ['created_at', 'updated_at', 'user']
+
+    def validate(self, data):
+        user = self.context['request'].user
+        product = data.get('product')
+        
+        if self.instance is None and Review.objects.filter(user=user, product=product).exists():
+            raise serializers.ValidationError('Вы уже оставляли отзыв на этот товар.')
+        
+        return data

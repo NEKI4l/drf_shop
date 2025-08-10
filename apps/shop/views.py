@@ -1,8 +1,12 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework import permissions
+
+from .models import Review
 
 from apps.shop.models import Category, Product
-from apps.shop.serializers import CategorySerializer, ProductSerializer, ToggleCartItemSerializer, OrderItemSerializer, CheckoutSerializer, OrderSerializer
+from apps.shop.serializers import CategorySerializer, ProductSerializer, ToggleCartItemSerializer, OrderItemSerializer, CheckoutSerializer, OrderSerializer, ReviewSerializer
 
 from apps.profiles.models import OrderItem, ShippingAddress, Order
 
@@ -47,6 +51,18 @@ class ProductsView(APIView):
 
     def get(self, request, *args, **kwargs):
         products = Product.objects.select_related("category", "seller", "seller__user").all()
+        max_price = request.GET.get('max_price')
+        min_price = request.GET.get('min_price')
+        if max_price and min_price:
+            if max_price <= min_price:
+                return Response(
+                    data={"message": "The maximum price must be higher than the minimum"},
+                    status=400
+                )
+        if max_price:
+            products = products.filter(price_current__lte=max_price)
+        if min_price:
+            products = products.filter(price_current__gte=min_price)
         serializer = self.serializer_class(products, many=True)
         return Response(data=serializer.data, status=200)
     
@@ -156,3 +172,33 @@ class CheckoutView(APIView):
 
         serializer = OrderSerializer(order)
         return Response(data={"message": "Checkout Successful", "item": serializer.data}, status=200)
+
+
+class ReviewListCreateView(ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        product_slug = self.kwargs.get('slug')
+        return Review.objects.filter(product__id=product_slug)
+    
+    def perform_create(self, serializer):
+        product_slug = self.kwargs.get('slug')
+        product = Product.objects.get(slug=product_slug)
+        serializer.save(user=self.request.user, product=product)
+
+
+class ReviewRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = Review.objects.all()
+    
+    def perform_update(self, serializer):
+        if serializer.instance.user != self.request.user:
+            raise permissions.PermissionDenied('Вы не можете редактировать этот отзыв.')
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise permissions.PermissionDenied('Вы не можете удалить этот отзыв.')
+        instance.delete()
